@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: image-player
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       deployment: image-player
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: image-player
-        image: quay.io/cfchase/image-player:latest
+        image: quay.io/cfchase/modh-demo-image-player:latest
         ports:
         - containerPort: 8080
         resources:

@@ -1,0 +1,8 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: object-detection-kafka
+data:
+  KAFKA_BROKER_LIST: "modh-demo-kafka-bootstrap:9092"
+  KAFKA_TOPIC_IMAGES: images
+  KAFKA_TOPIC_OBJECTS: object-detection

@@ -7,7 +7,7 @@
     "build": "cd frontend && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "fastify start -w -p ${PORT:-8080} -l debug -P app.js",
+    "dev": "NODE_ENV=development fastify start -w -p ${PORT:-8080} -l debug -P app.js",
     "dev-all": "concurrently \"scripts/dev-backend.sh\" \"scripts/dev-frontend.sh\"",
     "format": "prettier --write \"routes/**/*.js\" \"utils/**/*.js\" \"*.js\""
   },

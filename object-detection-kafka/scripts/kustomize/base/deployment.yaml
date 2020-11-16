@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: object-detection-kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: object-detection-kafka
+  template:
+    metadata:
+      labels:
+        deployment: object-detection-kafka
+    spec:
+      containers:
+      - name: object-detection-kafka
+        image: quay.io/cfchase/modh-demo-object-detection-kafka:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+          - configMapRef:
+              name: object-detection-kafka
+        resources:
+          requests:
+            cpu: 250m
+            memory: 300Mi
+          limits:
+            cpu: 500m
+            memory: 1000Mi
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 15
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 15
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 3

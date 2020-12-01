@@ -1,12 +1,13 @@
 export const INCOMING_MESSAGE_TYPES = {
-  PLAYER_CONFIGURATION: "player-configuration",
+  CONFIG: "config",
   HEARTBEAT: "heartbeat",
+  PONG: "pong",
+  OBJECT_DETECTION: "objectDetection",
 };
 
 export const OUTGOING_MESSAGE_TYPES = {
   INIT: "init",
   PING: "ping",
   HELP: "help",
-  GUESS: "guess",
-  BONUS_GUESS: "bonus-guess",
+  IMAGE: "image",
 };

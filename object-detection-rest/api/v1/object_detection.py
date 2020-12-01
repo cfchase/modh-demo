@@ -10,14 +10,24 @@ def object_detection():
         'detections': [
             {
                 'box': {
-                    'xMax': 0.8,
-                    'xMin': 0.4,
-                    'yMax': 0.6,
-                    'yMin': 0.4
+                    'xMax': 0.4,
+                    'xMin': 0.2,
+                    'yMax': 0.4,
+                    'yMin': 0.2
                 },
                 'class': 1,
                 'label': 'dog',
                 'score': 0.99
+            }, {
+                'box': {
+                    'xMax': 0.8,
+                    'xMin': 0.6,
+                    'yMax': 0.8,
+                    'yMin': 0.6
+                },
+                'class': 2,
+                'label': 'cat',
+                'score': 0.98
             }
         ]
     }

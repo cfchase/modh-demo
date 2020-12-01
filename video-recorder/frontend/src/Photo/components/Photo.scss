@@ -6,7 +6,7 @@
   align-items: center;
 }
 
-.search {
+.photo {
   .camera-preview,
   .result-canvas,
   .zones-canvas {
@@ -101,7 +101,7 @@
 }
 
 @media screen and (orientation: portrait) {
-  .search {
+  .photo {
     .camera,
     .result {
       div.img-preview {
@@ -171,7 +171,7 @@
 }
 
 @media screen and (orientation: landscape) {
-  .search {
+  .photo {
     .camera,
     .result {
       div.img-preview {

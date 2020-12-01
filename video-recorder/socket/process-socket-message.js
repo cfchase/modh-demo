@@ -6,12 +6,12 @@ function processSocketMessage(fastify, conn, messageStr) {
   try {
     messageObj = JSON.parse(messageStr);
   } catch (error) {
-    fastify.log.error("Malformed socket message JSON:", error.message);
+    fastify.log.error("Malformed socket message JSON: %s", error.message);
     return;
   }
 
   fastify.log.info(`processing message of type '${messageObj.type}'`);
-  fastify.log.debug(`payload for message '${messageObj.type}' was: %j`, messageObj);
+  // fastify.log.debug(`payload for message '${messageObj.type}' was: %j`, messageObj);
 
   switch (messageObj.type) {
     case INCOMING_MESSAGE_TYPES.INIT:

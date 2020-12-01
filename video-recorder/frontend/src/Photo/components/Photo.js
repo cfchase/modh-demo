@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, Component } from "react";
 import { connect } from "react-redux";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { Button, Switch } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { resetSearch, searchPhoto } from "../actions";
@@ -22,19 +22,11 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const labelSettings = {
-  Anaconda: {
+  dog: {
     bgColor: "#3DB048",
     width: 90,
   },
-  SAS: {
-    bgColor: "#007CC2",
-    width: 43,
-  },
-  Cloudera: {
-    bgColor: "#F96703",
-    width: 89,
-  },
-  "Red Hat": {
+  cat: {
     bgColor: "#EE0001",
     width: 75,
   },
@@ -110,7 +102,7 @@ function Photo({
     const base64data = imageData.replace(/^data:image\/(png|jpg|jpeg);base64,/, "");
     searchPhoto(base64data);
 
-    updateZonesCanvas()
+    updateZonesCanvas();
   }
 
   function updateImageCanvas() {
@@ -131,13 +123,11 @@ function Photo({
     zonesCanvas.width = imageCanvas.width;
     zonesCanvas.height = imageCanvas.height;
 
-    const ctx = zonesCanvas.getContext('2d');
+    const ctx = zonesCanvas.getContext("2d");
 
-    ctx.fillStyle = '#565656';
+    ctx.fillStyle = "#565656";
     ctx.globalAlpha = 0.7;
-    ctx.fillRect(0, 0,
-      zonesCanvas.width,
-      zonesCanvas.height);
+    ctx.fillRect(0, 0, zonesCanvas.width, zonesCanvas.height);
   }
 
   function drawDetections() {
@@ -254,14 +244,14 @@ function Photo({
           </Button>
         </div>
         <div className="right-button-container button-container">
-          <Link to={'/video'}>
+          <Link to={"/video"}>
             <Button
               variant="contained"
               size="large"
               className="choose-camera-button"
               onClick={onFacingModeClicked}
             >
-              <FontAwesomeIcon icon={faVideoSlash}/>
+              <FontAwesomeIcon icon={faVideoSlash} />
             </Button>
           </Link>
         </div>
@@ -293,15 +283,15 @@ function Photo({
             <div className="zones overlay">
               <canvas className="zones-canvas" ref={zonesCanvasRef} />
             </div>
-            <div className='loading overlay' style={displayLoading}>
+            <div className="loading overlay" style={displayLoading}>
               <div>
-                <FontAwesomeIcon className='loading-icon' icon={faCircleNotch} spin/>
+                <FontAwesomeIcon className="loading-icon" icon={faCircleNotch} spin />
               </div>
-              <div className='loading-text'>Loading ...</div>
+              <div className="loading-text">Loading ...</div>
             </div>
-            <div className='no-objects overlay' style={displayNoObjects}>
-              <div className='no-objects-text'>No Objects</div>
-              <div className='no-objects-text'>Found</div>
+            <div className="no-objects overlay" style={displayNoObjects}>
+              <div className="no-objects-text">No Objects</div>
+              <div className="no-objects-text">Found</div>
             </div>
           </div>
         </div>
@@ -323,7 +313,7 @@ function Photo({
   }
 
   return (
-    <div className="search">
+    <div className="photo">
       {renderCamera()}
       {renderSnapshot()}
     </div>

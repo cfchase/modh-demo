@@ -1,8 +1,8 @@
-import React, { lazy, Suspense } from 'react';
-import { Switch, Route, Redirect } from 'react-router-dom';
+import React, { lazy, Suspense } from "react";
+import { Switch, Route, Redirect } from "react-router-dom";
 
-const Video = lazy(() => import('../../Video'));
-const Photo = lazy(() => import('../../Photo'));
+const Video = lazy(() => import("../../Video"));
+const Photo = lazy(() => import("../../Photo"));
 
 const Routes = () => (
   <Suspense
@@ -13,9 +13,11 @@ const Routes = () => (
     }
   >
     <Switch>
-      <Route exact path="/"><Redirect to="/photo"/></Route>
-      <Route path="/photo" exact component={Photo}/>
-      <Route path="/video" exact component={Video}/>
+      <Route exact path="/">
+        <Redirect to="/photo" />
+      </Route>
+      <Route path="/photo" exact component={Photo} />
+      <Route path="/video" exact component={Video} />
     </Switch>
   </Suspense>
 );

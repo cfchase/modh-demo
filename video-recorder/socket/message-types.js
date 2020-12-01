@@ -8,6 +8,6 @@ module.exports.OUTGOING_MESSAGE_TYPES = {
   ERROR: "error",
   HEARTBEAT: "heartbeat",
   PING_RESPONSE: "pong",
-  USER_CONFIGURATION: "user-configuration",
-  OBJECT_DETECTION: "object-detection"
+  CONFIG: "config",
+  OBJECT_DETECTION: "objectDetection",
 };

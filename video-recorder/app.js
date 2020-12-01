@@ -13,6 +13,8 @@ const Kafka = require("fastify-kafka");
 const kafkaConfig = require("./kafka/config");
 const kafkaInit = require("./kafka/init");
 
+global.users = {};
+
 const wsOpts = {
   maxPayload: 2 * 1024 * 1024 * 1024, // 2GB
   path: "/socket",
@@ -43,7 +45,7 @@ module.exports = async function (fastify, opts) {
   });
 
   fastify.ready(() => {
-    kafkaInit(fastify);
     socketInit(fastify);
+    kafkaInit(fastify);
   });
 };

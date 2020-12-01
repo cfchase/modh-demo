@@ -58,7 +58,7 @@ async function requestObjectDetection(image) {
   const response = await axios({
     method: "POST",
     url: OBJECT_DETECTION_URL,
-    data: {image}
+    data: { image },
   });
   // console.log(response);
   return response.data;
@@ -79,8 +79,8 @@ function sendKafkaMsg(fastify, jsonMsg) {
       payload: jsonMsg,
       key: null,
     });
-    fastify.log.debug("Pushed message", result, jsonMsg);
+    // fastify.log.debug("Pushed message %j %s", result, jsonMsg);
   } catch (error) {
-    fastify.log.error("kafka producer failed to send message. Error: ", error.message);
+    fastify.log.error("kafka producer failed to send message. Error: %s", error.message);
   }
 }

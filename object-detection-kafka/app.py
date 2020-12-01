@@ -34,7 +34,7 @@ def main():
             msg = record.value.decode('utf-8')
             dict = json.loads(msg)
             result = inference(dict)
-            dict['objectDetection'] = result
+            dict['detections'] = result
             producer.send(PRODUCER_TOPIC, json.dumps(dict).encode('utf-8'))
             producer.flush()
     finally:

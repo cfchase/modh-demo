@@ -1,5 +1,5 @@
 import Sockette from "sockette";
-import { take, put, fork, apply, takeLatest } from "redux-saga/effects";
+import { take, put, apply, takeLatest } from "redux-saga/effects";
 import { eventChannel } from "redux-saga";
 
 import {
@@ -14,11 +14,8 @@ import {
 let socket;
 
 function getSocketUrl() {
-  // return `ws://localhost:8081/socket`;
-
-  console.log(process.env.REACT_APP_PHONE_SOCKET_URL);
-  if (process.env.REACT_APP_PHONE_SOCKET_URL) {
-    return process.env.REACT_APP_PHONE_SOCKET_URL;
+  if (process.env.REACT_APP_ADMIN_SOCKET_URL) {
+    return process.env.REACT_APP_ADMIN_SOCKET_URL;
   }
 
   let port = "";
@@ -38,6 +35,7 @@ function createSocketChannel() {
     const onWsOpen = (event) => {
       emit({
         type: WS_OPEN,
+        payload: { url: getSocketUrl() },
       });
     };
 

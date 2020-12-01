@@ -1,112 +1,208 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { connect } from "react-redux";
-import { Button } from "@material-ui/core";
-import { withStyles, makeStyles } from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import Slider from "@material-ui/core/Slider";
-import { processFrame } from "../actions";
+import React, { useState, useEffect, useCallback } from 'react';
+import { connect } from 'react-redux';
+import { Button } from '@material-ui/core';
+import { withStyles, makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
+import Slider from '@material-ui/core/Slider';
+import { resetVideo, sendImage } from '../actions';
 
-import "./Video.scss";
+import './Video.scss';
+import { ReactComponent as HorizontalCameraBorder } from '../../Photo/components/horizontal-camera-border.svg';
+import { ReactComponent as VerticalCameraBorder } from '../../Photo/components/vertical-camera-border.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faCircleNotch, faStop,
+  faSync,
+  faVideo,
+} from '@fortawesome/free-solid-svg-icons';
+import { faCircle } from '@fortawesome/free-regular-svg-icons';
+import { Link } from 'react-router-dom';
 
-function Video({ processFrame, inference, frame }) {
+const labelSettings = {
+  dog: {
+    bgColor: "#3DB048",
+    width: 90,
+  },
+  cat: {
+    bgColor: "#EE0001",
+    width: 75,
+  },
+};
+
+function getLabelSettings(label) {
+  const defaultSettings = {
+    color: "#EE0001",
+  };
+
+  return labelSettings[label] || defaultSettings;
+}
+
+function Video({
+  reset,
+  sendImage,
+  user,
+  userId,
+  date,
+  time,
+  image,
+  detections,
+}) {
   const [video, setVideo] = useState(null);
-  const [canvas, setCanvas] = useState(null);
-  const [feed, setFeed] = useState(null);
-  const [intId, setIntId] = useState(null);
+  const [captureCanvas, setCaptureCanvas] = useState(null);
+  const [imageCanvas, setImageCanvas] = useState(null);
+  const [zonesCanvas, setZonesCanvas] = useState(null);
+  const [intervalId, setIntervalId] = useState(null);
   const [recording, setRecording] = useState(false);
   const [framerate, setFramerate] = useState(5);
+  const [facingMode, setFacingMode] = useState("environment");
 
   useEffect(() => {
     setFrame();
-  }, [inference, frame]);
+  }, [detections, image]);
 
-  const videoRef = useCallback((node) => {
-    setVideo(node);
-    if (node) {
-      navigator.mediaDevices
-        .getUserMedia({ video: { facingMode: "environment" } })
-        .then((stream) => {
-          node.srcObject = stream;
-        });
-    }
+  const videoRef = useCallback(
+    (node) => {
+      setVideo(node);
+      if (node) {
+        navigator.mediaDevices
+        .getUserMedia({ video: { facingMode } })
+        .then((stream) => (node.srcObject = stream));
+      }
+    },
+    [facingMode]
+  );
+
+  const captureCanvasRef = useCallback((node) => {
+    setCaptureCanvas(node);
   }, []);
 
-  const canvasRef = useCallback((node) => {
-    setCanvas(node);
+  const imageCanvasRef = useCallback((node) => {
+    setImageCanvas(node);
   }, []);
 
-  const feedRef = useCallback((node) => {
-    setFeed(node);
+  const zonesCanvasRef = useCallback((node) => {
+    setZonesCanvas(node);
   }, []);
 
   function captureFrame() {
-    canvas.getContext("2d").drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+    captureCanvas.getContext('2d').
+      drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
 
-    let imageData = canvas.toDataURL("image/jpeg");
-    processFrame(imageData);
+    let imageData = captureCanvas.toDataURL('image/jpeg');
+    // const base64data = imageData;
+    const base64data = imageData.replace(/^data:image\/(png|jpg|jpeg);base64,/,
+      '');
+    const d = new Date();
+    sendImage(base64data, user?.id, d.toISOString(), d.getTime());
   }
 
   function setFrame() {
-    if (!feed || !frame) {
+    if (!imageCanvas || !image) {
       return;
     }
 
     let imageObj = new Image();
-    imageObj.onload = function () {
-      const ctx = feed.getContext("2d");
-      ctx.drawImage(this, 0, 0, feed.width, feed.height);
-      drawBoxes();
+    imageObj.onload = function() {
+      const ctx = imageCanvas.getContext('2d');
+      ctx.drawImage(this, 0, 0, imageCanvas.width, imageCanvas.height);
+      updateZonesCanvas();
+      drawDetections();
     };
 
-    imageObj.src = frame;
+    imageObj.src = `data:image/jpeg;base64,${image}`;
   }
 
-  function drawBoxes() {
-    if (!inference || !feed.getContext) {
+  function drawDetections() {
+    if (!imageCanvas.getContext) {
       return;
     }
 
-    inference.detections.forEach((d) => drawBox(d));
+    detections.forEach((d) => drawDetection(d));
   }
 
-  function drawBox({ box, label, score }) {
-    const ctx = feed.getContext("2d");
-    const width = Math.floor((box.xMax - box.xMin) * feed.width);
-    const height = Math.floor((box.yMax - box.yMin) * feed.height);
-    const x = Math.floor(box.xMin * feed.width);
-    const y = Math.floor(box.yMin * feed.height);
-    ctx.lineWidth = 3;
+  function updateZonesCanvas() {
+    zonesCanvas.width = imageCanvas.width;
+    zonesCanvas.height = imageCanvas.height;
 
-    if (score > 0.9) {
-      ctx.strokeStyle = "lightgreen";
-    } else if (score > 0.8) {
-      ctx.strokeStyle = "yellow";
-    } else {
-      ctx.strokeStyle = "orange";
-    }
+    const ctx = zonesCanvas.getContext("2d");
 
+    ctx.fillStyle = "#565656";
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(0, 0, zonesCanvas.width, zonesCanvas.height);
+  }
+
+  function drawDetection({ box, label, score }) {
+    const drawScore = true;
+    const textBgHeight = 24;
+    const scoreWidth = drawScore ? 40 : 0;
+    const text = drawScore ? `${label} ${Math.floor(score * 100)}%` : label;
+
+    const width = Math.floor((box.xMax - box.xMin) * imageCanvas.width);
+    const height = Math.floor((box.yMax - box.yMin) * imageCanvas.height);
+    const x = Math.floor(box.xMin * imageCanvas.width);
+    const y = Math.floor(box.yMin * imageCanvas.height);
+    const labelSettings = getLabelSettings(label);
+    drawBox(x, y, width, height, labelSettings.bgColor);
+    drawBoxTextBG(
+      x + 5,
+      y + height - textBgHeight - 4,
+      labelSettings.width + scoreWidth,
+      textBgHeight,
+      labelSettings.bgColor
+    );
+    drawBoxText(text, x + 10, y + height - 10);
+    clearZone(x + 5, y + height - textBgHeight - 4, labelSettings.width + scoreWidth, textBgHeight);
+    clearZone(x, y, width, height);
+  }
+
+  function drawBox(x, y, width, height, color) {
+    const ctx = imageCanvas.getContext("2d");
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "white";
+    ctx.setLineDash([16, 16]);
     ctx.strokeRect(x, y, width, height);
-    ctx.font = "32px sans-serif";
-    ctx.strokeText(label, x + 10, y + height - 10);
   }
 
-  function startFeed() {
-    if (intId) {
+  function drawBoxTextBG(x, y, width, height, color) {
+    const ctx = imageCanvas.getContext("2d");
+
+    // ctx.strokeStyle = getLabelSettings(label).color;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, width, height);
+  }
+
+  function drawBoxText(text, x, y) {
+    const ctx = imageCanvas.getContext("2d");
+    ctx.font = "18px Overpass";
+    ctx.fillStyle = "white";
+    ctx.fillText(text, x, y);
+  }
+
+  function clearZone(x, y, width, height) {
+    const ctx = zonesCanvas.getContext("2d");
+    ctx.clearRect(x - 3, y - 6, width + 6, height + 6);
+  }
+
+
+
+  function startRecording() {
+    if (intervalId) {
       return;
     }
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    feed.width = canvas.width;
-    feed.height = canvas.height;
+    captureCanvas.width = video.videoWidth;
+    captureCanvas.height = video.videoHeight;
+    imageCanvas.width = captureCanvas.width;
+    imageCanvas.height = captureCanvas.height;
 
     let x = setInterval(() => captureFrame(), Math.ceil(1000 / framerate));
-    setIntId(x);
+    setIntervalId(x);
     setRecording(true);
   }
 
-  function stopFeed() {
-    clearInterval(intId);
-    setIntId(null);
+  function stopRecording() {
+    clearInterval(intervalId);
+    setIntervalId(null);
     setRecording(false);
   }
 
@@ -114,136 +210,136 @@ function Video({ processFrame, inference, frame }) {
     console.log(newValue);
     setFramerate(newValue);
     if (recording) {
-      clearInterval(intId);
+      clearInterval(intervalId);
       let x = setInterval(() => captureFrame(), 1000 / framerate);
-      setIntId(x);
+      setIntervalId(x);
     }
   }
 
-  function renderPreview() {
+
+  function onFacingModeClicked() {
+    if (facingMode === "user") {
+      setFacingMode("environment");
+    } else {
+      setFacingMode("user");
+    }
+  }
+
+  function renderCamera() {
+    const displayCamera = recording ? { display: "none" } : {};
+
     return (
-      <div className="preview" style={{ display: recording ? "none" : "block" }}>
-        <video className="camera-preview" ref={videoRef} controls={false} autoPlay playsinline />
+      <div className="camera" style={displayCamera}>
+        <div className="img-preview">
+          <div className="img-container">
+            <video
+              className="camera-preview"
+              ref={videoRef}
+              controls={false}
+              autoPlay
+              playsInline
+            />
+            <div className="horizontal overlay">
+              <HorizontalCameraBorder className={"horizontal-camera-border-svg"} />
+            </div>
+            <div className="vertical overlay">
+              <VerticalCameraBorder className={"vertical-camera-border-svg"} />
+            </div>
+          </div>
+        </div>
+        <div className="left-button-container button-container">
+          <Button
+            variant="contained"
+            size="large"
+            className="choose-camera-button"
+            onClick={onFacingModeClicked}
+          >
+            <FontAwesomeIcon icon={faSync} />
+          </Button>
+        </div>
+        <div className="center-button-container button-container">
+          <Button
+            variant="contained"
+            size="large"
+            className="start-recording-button"
+            onClick={startRecording}
+          >
+            <FontAwesomeIcon icon={faCircle} />
+          </Button>
+        </div>
+        <div className="right-button-container button-container">
+          <Link to={"/video"}>
+            <Button
+              variant="contained"
+              size="large"
+              className="choose-camera-button"
+              onClick={onFacingModeClicked}
+            >
+              <FontAwesomeIcon icon={faVideo} />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  function renderObjectDetection() {
+    const displayResult = recording ? {} : { display: "none" };
+
+    return (
+      <div className="object-detection" style={displayResult}>
+        <div className="img-preview">
+          <div className="img-container">
+            <canvas className="image-canvas" ref={imageCanvasRef}/>
+            <div className="zones overlay">
+              <canvas className="zones-canvas" ref={zonesCanvasRef} />
+            </div>
+          </div>
+        </div>
+        <div className="left-button-container button-container"></div>
+        <div className="center-button-container button-container">
+          <Button
+            variant="contained"
+            size="large"
+            className="stop-recording-button"
+            onClick={stopRecording}
+          >
+            <FontAwesomeIcon className="stop-icon" icon={faStop} />
+          </Button>
+        </div>
+        <div className="right-button-container button-container"></div>
       </div>
     );
   }
 
   function renderCaptureCanvas() {
     return (
-      <div className="capture" style={{ display: "none" }}>
-        <canvas className="capture-canvas" ref={canvasRef} />
+      <div className="capture" style={{display: 'none'}}>
+        <canvas className="capture-canvas" ref={captureCanvasRef}/>
       </div>
     );
   }
-
-  function renderFeed() {
-    return (
-      <div className="feed" style={{ display: recording ? "block" : "none" }}>
-        <canvas className="feed-canvas" ref={feedRef} />
-      </div>
-    );
-  }
-
-  const marks = [
-    {
-      value: 1,
-    },
-    {
-      value: 5,
-    },
-    {
-      value: 10,
-    },
-    {
-      value: 15,
-    },
-  ];
-
-  const FramerateSlider = withStyles({
-    root: {
-      color: "#f1f1f1",
-      height: 4,
-    },
-    thumb: {
-      height: 16,
-      width: 16,
-      backgroundColor: "white",
-      border: "2px solid currentColor",
-      marginTop: -6,
-      marginLeft: -8,
-      "&:focus,&:hover,&$active": {
-        boxShadow: "inherit",
-      },
-    },
-    active: {},
-    valueLabel: {
-      left: "calc(-50% + 11px)",
-      top: -10,
-      "& *": {
-        background: "transparent",
-        color: "white",
-      },
-    },
-    track: {
-      height: 4,
-      borderRadius: 2,
-    },
-    rail: {
-      height: 4,
-      borderRadius: 2,
-    },
-    mark: {
-      backgroundColor: "#fff",
-      height: 16,
-      width: 2,
-      marginTop: -6,
-    },
-    markActive: {
-      opacity: 1,
-      backgroundColor: "currentColor",
-    },
-  })(Slider);
 
   return (
     <div className="video">
-      <div className="button-bar">
-        <Button variant="contained" onClick={() => startFeed()}>
-          {" "}
-          Start
-        </Button>
-        <Button variant="contained" onClick={() => stopFeed()}>
-          {" "}
-          Stop
-        </Button>
-        <div className="slider-container">
-          <Typography id="framerate-slider">Framerate</Typography>
-          <FramerateSlider
-            value={framerate}
-            onChange={onFramerateChange}
-            min={1}
-            max={15}
-            step={1}
-            marks={marks}
-            valueLabelDisplay="on"
-            aria-labelledby="framerate-slider"
-          />
-        </div>
-      </div>
-      {renderFeed()}
-      {renderPreview()}
+      {renderCamera()}
+      {renderObjectDetection()}
       {renderCaptureCanvas()}
     </div>
   );
 }
 
 function mapStateToProps(state) {
-  return state.videoReducer;
+  return {...state.appReducer, ...state.videoReducer};
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    processFrame: (photo, width, height) => {
-      dispatch(processFrame(photo, width, height));
+    reset: () => {
+      dispatch(resetVideo());
+    },
+    sendImage: (image, userId, date, time) => {
+      dispatch(sendImage(image, userId, date, time));
     },
   };
 }

@@ -4,31 +4,14 @@ export const resetVideo = () => ({
   payload: {},
 });
 
-export const PROCESS_FRAME = "Video.PROCESS_FRAME";
-export const processFrame = (photo, width, height) => ({
-  type: PROCESS_FRAME,
+export const SEND_IMAGE = "Video.SEND_IMAGE";
+export const sendImage = (image, userId, date, time) => ({
+  type: SEND_IMAGE,
   payload: {
-    photo,
+    image,
+    userId,
+    date,
+    time
   },
 });
 
-export const PROCESS_FRAME_PENDING = "Video.PROCESS_FRAME_PENDING";
-export const processFramePending = () => ({
-  type: PROCESS_FRAME_PENDING,
-});
-
-export const PROCESS_FRAME_FULFILLED = "Video.PROCESS_FRAME_FULFILLED";
-export const processFrameFulfilled = (response) => ({
-  type: PROCESS_FRAME_FULFILLED,
-  payload: {
-    response,
-  },
-});
-
-export const PROCESS_FRAME_REJECTED = "Video.PROCESS_FRAME_REJECTED";
-export const processFrameRejected = (error) => ({
-  type: PROCESS_FRAME_REJECTED,
-  payload: {
-    error,
-  },
-});
